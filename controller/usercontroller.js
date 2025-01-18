@@ -1,5 +1,6 @@
 import { User } from "../modal/usermodal.js";
 import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
 
 export const register = async(req,res)=>{
    try {
@@ -9,7 +10,7 @@ export const register = async(req,res)=>{
         // return res.send('Please fill all the fields')
         return res.status(400).json({message: "Please fill all the fields."});
     }
-const hashpassword = await bcrypt.hash(password,10)
+    const hashpassword = await bcrypt.hash(password,10)
 
     const user = await User.create({
         name,
@@ -37,6 +38,8 @@ export const login = async(req,res)=>{
     }
     const user = await User.findOne({email});
 
+    const token = jwt.sign({id:user._id},process.env.Secretkey,{expiresIn: '1h'});
+
     if(!user){
         return res.status(404).json({message: "User not found."});
     }
@@ -50,6 +53,7 @@ export const login = async(req,res)=>{
     res.json({
         message: 'Loggin successfully.',
         user,
+        token
     })
 
     } catch (error) {
